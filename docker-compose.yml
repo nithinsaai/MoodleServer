@@ -27,14 +27,14 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      MOODLE_URL: http://192.168.0.4:8080
+      MOODLE_URL: 
       MOODLE_DBTYPE: mysqli
       MOODLE_DBHOST: db
       MOODLE_DBNAME: mydatabase
       MOODLE_DBUSER: myuser
       MOODLE_DBPASS: mypassword
     ports:
-      - "8080:80"
+      - "8000:80"
     volumes:
       - ./moodle:/var/www/html
       - ./moodledata:/var/www/moodledata
@@ -42,3 +42,7 @@ services:
 volumes:
   db_data:
 
+networks:
+  default:
+    external:
+      name: moodle-net
