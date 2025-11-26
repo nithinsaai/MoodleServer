@@ -27,12 +27,33 @@ services:
         condition: service_healthy
     restart: unless-stopped
     environment:
-      MOODLE_URL: 
+      MOODLE_URL:
       MOODLE_DBTYPE: mysqli
       MOODLE_DBHOST: db
       MOODLE_DBNAME: mydatabase
       MOODLE_DBUSER: myuser
       MOODLE_DBPASS: mypassword
+      MOODLE_DIR: /var/www/html
+      MOODLE_DATA: /var/www/moodledata
+      WS_ADMIN_USERNAME: rgenieadmin
+      WS_ADMIN_PASSWORD: RGenieAdmin@123
+      WS_ADMIN_EMAIL: rgenieadmin@gmail.com
+      WS_ADMIN_FIRSTNAME: RGenie
+      WS_ADMIN_LASTNAME: Admin
+      WS_RGENIE_ADMIN_SERVICE_SHORTNAME: rgenie_admin_service 
+      WS_RGENIE_ADMIN_SERVICE_NAME: RGenie Admin Service
+      WS_RGENIE_ADMIN_SERVICE_FUNCTIONS: >
+        auth_email_signup_user,
+        core_user_get_users_by_field,
+        core_course_get_categories,
+        core_course_get_courses,
+        core_course_get_courses_by_field,
+        core_course_get_contents
+      WS_RGENIE_USER_SERVICE_SHORTNAME: rgenie_user_service
+      WS_RGENIE_USER_SERVICE_NAME: RGenie User Service
+      WS_RGENIE_USER_SERVICE_FUNCTIONS: >
+        core_course_get_categories,
+        core_course_get_courses
     ports:
       - "8000:80"
     volumes:

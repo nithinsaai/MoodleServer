@@ -1,10 +1,6 @@
 #!/bin/bash
 set -e
 
-MOODLE_DIR="/var/www/html"
-MOODLE_DATA="/var/www/moodledata"
-CONFIG_FILE="${MOODLE_DIR}/config.php"
-
 echo "Starting Moodle container..."
 
 # Wait for the DB to be ready
@@ -23,6 +19,7 @@ echo "Installing Moodle dependencies..."
 
 apt-get install -y \
     git \
+    nano \
     unzip \
     libpng-dev \
     libjpeg-dev \
@@ -63,13 +60,51 @@ if [ ! -f "${CONFIG_FILE}" ]; then
     --non-interactive \
     --agree-license
 
+    echo "📦 Copying plugins into Moodle..."
+    cp -r /plugin/* /var/www/html/local/
+    php /var/www/html/admin/cli/upgrade.php --non-interactive
+
     echo "Moodle installation complete!"
 else
     echo "Moodle already installed, skipping setup."
 fi
 
+# Run modular PHP scripts (in correct order)
+run() {
+    echo "➡ Running $1..."
+    php /bootstrap/$1
+}
+
+run enable_scorm_debug.php
+run enable_auth_methods.php
+run enable_webservices.php
+run enable_rest_protocol.php
+run enable_developer_docs.php
+run create_ws_admin.php
+
+export WS_SERVICE_SHORTNAME="${WS_RGENIE_ADMIN_SERVICE_SHORTNAME}"
+export WS_SERVICE_NAME="${WS_RGENIE_ADMIN_SERVICE_NAME}"
+export WS_SERVICE_AUTHORIZED_ONLY=1
+export WS_FUNCTIONS="${WS_RGENIE_ADMIN_SERVICE_FUNCTIONS}"
+run create_external_service.php
+run add_functions.php
+run authorize_user.php
+
+export WS_SERVICE_SHORTNAME="${WS_RGENIE_USER_SERVICE_SHORTNAME}"
+export WS_SERVICE_NAME="${WS_RGENIE_USER_SERVICE_NAME}"
+export WS_SERVICE_AUTHORIZED_ONLY=0
+export WS_FUNCTIONS="${WS_RGENIE_USER_SERVICE_FUNCTIONS}"
+run create_external_service.php
+run add_functions.php
+
+run enable_token_creation_for_authenticated_user.php
+run configure_outgoing_mail.php
+run create_role_users.php
+
+echo "🎉 Moodle bootstrap complete!"
+
 # Ensure permissions
-chown -R www-data:www-data "${MOODLE_DIR}" "${MOODLE_DATA}" "${CONFIG_FILE}"
+chown -R www-data:www-data "${MOODLE_DIR}" "${MOODLE_DATA}"
 
 echo "Starting Apache..."
 exec apache2-foreground

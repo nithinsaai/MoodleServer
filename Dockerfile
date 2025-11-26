@@ -4,7 +4,10 @@ FROM php:8.3-apache
 # copy Moodle PHP settings
 COPY php-moodle.ini /usr/local/etc/php/conf.d/php-moodle.ini
 
-# Copy entrypoint script
+COPY ./bootstrap /bootstrap
+
+COPY ./plugin /plugin
+
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
